@@ -36,7 +36,7 @@ deepclean: memclean
 	rm -rf $(EXEC)
 
 install: 
-	cp ./${EXEC} ~/.local/bin/project
+	cp ./${EXEC} /usr/bin/project
 
 # Phony targets
 .PHONY: all compile memclean deepclean install

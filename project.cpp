@@ -1,5 +1,4 @@
 #include <cstdlib>
-#include <format>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -7,6 +6,8 @@
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <string_view>
+#include <format>
 #include <unistd.h>
 
 #include "headers/json.hpp"
@@ -27,15 +28,32 @@ void createBase() {
     ofstream createFile(project_path + "/memory.json");
     json memory = json::parse(R"(
 		{
-		 "paths": 
-		    [
-		      "",
-		      "",
-		      "",
-		      "",
-		      "",
-		      ""
-		    ]
+		 "items": {
+			"1": {
+				"path": "",
+				"cmd": ""
+			},
+			"2": {
+				"path": "",
+				"cmd": ""
+			},
+			"3": {
+				"path": "",
+				"cmd": ""
+			},
+			"4": {
+				"path": "",
+				"cmd": ""
+			},
+			"5": {
+				"path": "",
+				"cmd": ""
+			},
+			"6": {
+				"path": "",
+				"cmd": ""
+			}
+		 } 
 		})");
     createFile << setw(4) << memory << endl;
     createFile.close();
@@ -50,59 +68,78 @@ json loadMemory() {
   return json::parse(buffer.str());
 }
 
-
 int main(int argc, char *argv[]) {
   createBase();
 
   json memory = loadMemory();
 
   bool writeMode = false;
-  int slot = -1;
+  string slot = "";
   for (int i = 1; i < argc; i++) {
-	string curr = argv[i]; 
-	// set write
-	if(curr == "--set") writeMode = true;
+    string curr = argv[i];
+    string next = "";
+    if (i + 1 < argc)
+      next = argv[i+1];
+    // set write
+    if (curr == "--set")
+      writeMode = true;
+    if (i > 3)
+      break;
+    if (i == 1) {
+      string path = "";
+      string app = "";
+      if (curr == "1") {
+        path = memory["items"]["1"]["path"];
+        app = memory["items"]["1"]["cmd"];
+      }
+      if (curr == "2") {
+        path = memory["items"]["2"]["path"];
+        app = memory["items"]["2"]["cmd"];
+      }
+      if (curr == "3") {
+        path = memory["items"]["3"]["path"];
+        app = memory["items"]["3"]["cmd"];
+      }
+      if (curr == "4") {
+        path = memory["items"]["4"]["path"];
+        app = memory["items"]["4"]["cmd"];
+      }
+      if (curr == "5") {
+        path = memory["items"]["5"]["path"];
+        app = memory["items"]["5"]["cmd"];
+      }
+      if (curr == "6") {
+        path = memory["items"]["6"]["path"];
+        app = memory["items"]["6"]["cmd"];
+      }
 
-	if(i == 1) {
-		string path = "";
-		if(curr == "1") path = memory["paths"][stoi(curr) -1];
-		if(curr == "2") path = memory["paths"][stoi(curr) -1];
-		if(curr == "3") path = memory["paths"][stoi(curr) -1];
-		if(curr == "4") path = memory["paths"][stoi(curr) -1];
-		if(curr == "5") path = memory["paths"][stoi(curr) -1];
-		if(curr == "6") path = memory["paths"][stoi(curr) -1];
+      if (path != "" && app != "") {
+        string cmd = "cd " + path + "/ && " + app;
+        system(cmd.c_str());
+      }
+    }
 
-		if(path != "") {
-			const string cmd = "nvim " + path;
-			system(cmd.c_str());
-		}
-	}
+    if (i == 2) {
+      slot = curr;
+    }
 
-	if(i == 2 ) {
-	  if(curr == "1") slot = stoi(curr) - 1;	
-	  if(curr == "2") slot = stoi(curr) - 1;	
-	  if(curr == "3") slot = stoi(curr) - 1;	
-	  if(curr == "4") slot = stoi(curr) - 1;	
-	  if(curr == "5") slot = stoi(curr) - 1;	
-	  if(curr == "6") slot = stoi(curr) - 1;	
-	}
-	
-	if(writeMode && i == 3) {
-	  string memory_path = getPath() + "/memory.json";
-	  ofstream memWrite(memory_path);
-	  memory["paths"][slot] = argv[i];
-	  memWrite << setw(4) << memory << endl;
-	  memWrite.close();
-	}
+    if (writeMode && i == 3) {
+      string memory_path = getPath() + "/memory.json";
+      ofstream memWrite(memory_path);
+      memory["items"][slot]["path"] = curr;
+      memory["items"][slot]["cmd"] = next;
+      memWrite << setw(4) << memory << endl;
+      memWrite.close();
+    }
 
-	if(curr == "-l" || curr == "--list") {
-		for(int k = 0; k < 6; k++) {
-			string line = std::format("Project {}: {}", to_string(k + 1), memory["paths"][k].dump()); 
+    if (curr == "-l" || curr == "--list") {
+      for (int k = 1; k < 6; k++) {
+        string line = std::format("Project {}: {}", to_string(k),
+                                  memory["items"][to_string(k)].dump());
 
-			cout << line << endl;
-		}
-	}
-
+        cout << line << endl;
+      }
+    }
   }
 
   return 0;
