@@ -1,6 +1,9 @@
 #include "headers/memory.hpp"
 
 int main(int argc, char *argv[]) {
-  init();
-   return 0;
+  vector<macro> memory = {};
+  init(&memory);
+
+    cout << memory.size() << endl;
+  return 0;
 }

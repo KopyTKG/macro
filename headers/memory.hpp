@@ -35,19 +35,38 @@ struct macro {
   cell macro;
 };
 
-const vector<macro> MEMORY = {};
 
 
-
-static void load(string path) {
+static void load(string path,vector<macro> *memory) {
   ifstream mem(path);
   stringstream buffer;
   buffer << mem.rdbuf();
   string data = buffer.str();
 
+  while (data != "") {
+    int index = data.find_first_of("\n");
+    string selected = data.substr(0, index);
+    data = data.substr(index, data.length());
+    if(index == 0 ) {
+    	selected = data;
+	data = "";
+    }
+    while (selected != "") {
+	int nameI = selected.find("|");	
+	int cmdI = selected.find(":");
+
+	vector<macro> tmp = {macro()};
+	tmp[0].name = selected.substr(0, nameI);
+	tmp[0].macro = cell();
+	tmp[0].macro.cmd = selected.substr(nameI, cmdI);
+	tmp[0].macro.path = selected.substr(cmdI, selected.length()-1);
+	(*memory).insert((*memory).end(), tmp.begin(), tmp.end());
+	selected = "";
+    }
+  }
 }
 
-static void init() {
+static void init(vector<macro> *memory) {
   auto dirExist = filesystem::exists(DIRPATH);
   auto fileExist = filesystem::exists(FILEPATH);
   if (!dirExist) {
@@ -58,7 +77,7 @@ static void init() {
     createFile << setw(4) << "" << endl;
     createFile.close();
   }
-  load(FILEPATH);
+  load(FILEPATH, memory);
 }
 
 #endif
