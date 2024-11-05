@@ -37,33 +37,34 @@ struct macro {
 
 
 
-static void load(string path,vector<macro> *memory) {
+static void load(string path,vector<macro>* memory) {
   ifstream mem(path);
   stringstream buffer;
   buffer << mem.rdbuf();
   string data = buffer.str();
 
-  while (data != "") {
-    int index = data.find_first_of("\n");
-    string selected = data.substr(0, index);
-    data = data.substr(index, data.length());
-    if(index == 0 ) {
-    	selected = data;
-	data = "";
-    }
-    while (selected != "") {
-	int nameI = selected.find("|");	
-	int cmdI = selected.find(":");
+while (!data.empty()) {
+	string::size_type index = data.find_first_of("\n");
+        string selected = data.substr(0, index);
+        data = (index == string::npos) ? "" : data.substr(index + 1);
 
-	vector<macro> tmp = {macro()};
-	tmp[0].name = selected.substr(0, nameI);
-	tmp[0].macro = cell();
-	tmp[0].macro.cmd = selected.substr(nameI, cmdI);
-	tmp[0].macro.path = selected.substr(cmdI, selected.length()-1);
-	(*memory).insert((*memory).end(), tmp.begin(), tmp.end());
-	selected = "";
+        if (selected.empty()) continue;
+
+	string::size_type nameI = selected.find("|");
+	string::size_type cmdI = selected.find(":");
+        
+        if (nameI == string::npos || cmdI == string::npos) {
+            cerr << "Error: Invalid format in line: " << selected << endl;
+            continue;
+        }
+
+        macro m;
+        m.name = selected.substr(0, nameI); // Name part
+        m.macro.cmd = selected.substr(nameI + 1, cmdI - nameI - 1); // Command part (between | and :)
+        m.macro.path = selected.substr(cmdI + 1); // Path part (after :)
+
+        memory->push_back(m);
     }
-  }
 }
 
 static void init(vector<macro> *memory) {
