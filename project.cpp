@@ -1,48 +1,23 @@
 #include "headers/memory.hpp"
 
-static string HELPMENU = R"(Usage: macro [name]
-
-    -s, --set               		Set macro
-      -o				Set override
-    -d, --delete			Delete macro
-    -l, --list               		Display all macros
-    -h, --help                  	Display this help message
-    --version               		Display the version of lea
- 
-If nothing is provided at all macro will display help.
-
-Any errors please report to: <https://github.com/kopytkg/macro/issues>
-
-usage
-
-get macro
-$ macro [name]
-
-set macro
-$ macro -s [name] [cmd] [path]
-
-set macro with override
-$ macro -s -o [name] [cmd] [path]
-
-delete macro
-$ macro -d [name]
-
-list macros
-$ macro -l)";
-
-static string VERSION = R"(v2.0.0)";
-
-void processArgs(int argc, char *argv[], vector<macro> *memory) {
-  if (argc < 2) {
-    return;
-  }
-
+void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
   if (argv[1][0] != '-') {
     if (!argv[1])
       return;
-    auto item = string(argv[1]);
-    cout << "No macro named (" + item + ") was found" << endl;
+    string name = string(argv[1]);
+    int index = Macro::indexOf(memory, name);
+    if (index == -1) {
+      cout << "No macro named (" + name + ") was found" << endl;
+      return;
+    } else {
+      Macro::macro item = (*memory)[index];
+      string cmd = "cd " + item.macro.path + " && " + item.macro.cmd;
+      system(cmd.c_str());
+    }
   } else {
+    int last = 0;
+    bool set, override, del = false;
+
     for (int i = 1; i <= argc; i++) {
       bool valid = false;
 
@@ -52,14 +27,35 @@ void processArgs(int argc, char *argv[], vector<macro> *memory) {
 
       // HELP menu output
       if (item == "-h" || item == "--help") {
-        cout << HELPMENU << endl;
+        cout << Macro::HELPMENU << endl;
         valid = true;
       }
 
       // Version output
       if (item == "--version") {
-        cout << VERSION << endl;
+        cout << Macro::VERSION << endl;
         valid = true;
+      }
+
+      // Setter flag
+      if (item == "-s" || item == "--set") {
+        last = i;
+        set = true;
+        break;
+      }
+
+      // Override flag
+      if (item == "-o" || item == "--override") {
+        last = i;
+        override = true;
+        break;
+      }
+
+      // Delete flag
+      if (item == "-d" || item == "--delete") {
+        last = i;
+        del = true;
+        break;
       }
 
       // List output
@@ -78,18 +74,36 @@ void processArgs(int argc, char *argv[], vector<macro> *memory) {
       } else if (!valid) {
       }
     }
+
+    if (del) {
+      Macro::remove(memory, argv[last + 1]);
+      return;
+    }
+
+    if (!set && !override)
+      return;
+
+    if ((argc - last) < 3) {
+      cout << "Not enought arguments" << endl;
+      return;
+    }
+
+    if (set || override) {
+      Macro::add(memory, argv[last + 1], argv[last + 2], argv[last + 3],
+                 override);
+    }
   }
 }
 
 int main(int argc, char *argv[]) {
-  vector<macro> memory = {};
-  init(&memory);
+  vector<Macro::macro> memory = {};
+  Macro::init(&memory);
   if (argc >= 2) {
     processArgs(argc, argv, &memory);
   } else {
-    cout << HELPMENU << endl;
+    cout << Macro::HELPMENU << endl;
   }
 
-  dump(&memory);
+  Macro::dump(&memory);
   return 0;
 }
