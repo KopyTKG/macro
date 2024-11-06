@@ -12,16 +12,17 @@ SRCS = $(wildcard *.cpp */*.cpp)
 OBJS = $(SRCS:.cpp=.o)
 
 # Executable name
-EXEC = project.bin
+EXEC = macro
+BIN = ${EXEC}.bin
 
 # All target
-all: deepclean $(EXEC) memclean 
+all: deepclean $(BIN) memclean 
 
 # Compile source
-compile: memclean $(EXEC)
+compile: memclean $(BIN)
 
 # Link the object files to create the executable
-$(EXEC): $(OBJS)
+$(BIN): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
 
 # Compile each .cpp file to .o
@@ -30,13 +31,13 @@ $(EXEC): $(OBJS)
 
 # Clean up object files and executable
 memclean:
-	rm -rf */*.o
+	rm -rf */*.o *.o
 
 deepclean: memclean
-	rm -rf $(EXEC)
+	rm -rf $(BIN)
 
 install: 
-	cp ./${EXEC} /usr/bin/project
+	cp ./${BIN} /usr/bin/${EXEC}
 
 # Phony targets
 .PHONY: all compile memclean deepclean install

@@ -1,146 +1,109 @@
-#include <cstdlib>
-#include <filesystem>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <ostream>
-#include <sstream>
-#include <string>
-#include <string_view>
-#include <format>
-#include <unistd.h>
+#include "headers/memory.hpp"
 
-#include "headers/json.hpp"
+void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
+  if (argv[1][0] != '-') {
+    if (!argv[1])
+      return;
+    string name = string(argv[1]);
+    int index = Macro::indexOf(memory, name);
+    if (index == -1) {
+      cout << "No macro named (" + name + ") was found" << endl;
+      return;
+    } else {
+      Macro::macro item = (*memory)[index];
+      string cmd = "cd " + item.macro.path + " && " + item.macro.cmd;
+      system(cmd.c_str());
+    }
+  } else {
+    int last = 0;
+    bool set, override, del = false;
 
-using namespace std;
-using json = nlohmann::json;
+    for (int i = 1; i <= argc; i++) {
+      bool valid = false;
 
-string getPath() {
-  string username = getlogin();
-  return "/home/" + username + "/.config/project";
-}
+      if (!argv[i])
+        break;
+      auto item = string(argv[i]);
 
-void createBase() {
-  string project_path = getPath();
-  auto check = filesystem::exists(project_path);
-  if (!check) {
-    filesystem::create_directory(project_path);
-    ofstream createFile(project_path + "/memory.json");
-    json memory = json::parse(R"(
-		{
-		 "items": {
-			"1": {
-				"path": "",
-				"cmd": ""
-			},
-			"2": {
-				"path": "",
-				"cmd": ""
-			},
-			"3": {
-				"path": "",
-				"cmd": ""
-			},
-			"4": {
-				"path": "",
-				"cmd": ""
-			},
-			"5": {
-				"path": "",
-				"cmd": ""
-			},
-			"6": {
-				"path": "",
-				"cmd": ""
-			}
-		 } 
-		})");
-    createFile << setw(4) << memory << endl;
-    createFile.close();
+      // HELP menu output
+      if (item == "-h" || item == "--help") {
+        cout << Macro::HELPMENU << endl;
+        valid = true;
+      }
+
+      // Version output
+      if (item == "--version") {
+        cout << Macro::VERSION << endl;
+        valid = true;
+      }
+
+      // Setter flag
+      if (item == "-s" || item == "--set") {
+        last = i;
+        set = true;
+        break;
+      }
+
+      // Override flag
+      if (item == "-o" || item == "--override") {
+        last = i;
+        override = true;
+        break;
+      }
+
+      // Delete flag
+      if (item == "-d" || item == "--delete") {
+        last = i;
+        del = true;
+        break;
+      }
+
+      // List output
+      if (item == "-l" || item == "--list") {
+        for (int k = 0; k < int(memory->size()); k++) {
+          cout << (*memory)[k].name + "|" + (*memory)[k].macro.cmd + ":" +
+                      (*memory)[k].macro.path
+               << endl;
+        }
+        valid = true;
+      }
+
+      if (!valid && item[0] == '-') {
+        cout << item + " is not valid command. Use macro -h" << endl;
+        break;
+      } else if (!valid) {
+      }
+    }
+
+    if (del) {
+      Macro::remove(memory, argv[last + 1]);
+      return;
+    }
+
+    if (!set && !override)
+      return;
+
+    if ((argc - last) < 3) {
+      cout << "Not enought arguments" << endl;
+      return;
+    }
+
+    if (set || override) {
+      Macro::add(memory, argv[last + 1], argv[last + 2], argv[last + 3],
+                 override);
+    }
   }
-}
-
-json loadMemory() {
-  string memory_path = getPath() + "/memory.json";
-  ifstream mem(memory_path);
-  stringstream buffer;
-  buffer << mem.rdbuf();
-  return json::parse(buffer.str());
 }
 
 int main(int argc, char *argv[]) {
-  createBase();
-
-  json memory = loadMemory();
-
-  bool writeMode = false;
-  string slot = "";
-  for (int i = 1; i < argc; i++) {
-    string curr = argv[i];
-    string next = "";
-    if (i + 1 < argc)
-      next = argv[i+1];
-    // set write
-    if (curr == "--set")
-      writeMode = true;
-    if (i > 3)
-      break;
-    if (i == 1) {
-      string path = "";
-      string app = "";
-      if (curr == "1") {
-        path = memory["items"]["1"]["path"];
-        app = memory["items"]["1"]["cmd"];
-      }
-      if (curr == "2") {
-        path = memory["items"]["2"]["path"];
-        app = memory["items"]["2"]["cmd"];
-      }
-      if (curr == "3") {
-        path = memory["items"]["3"]["path"];
-        app = memory["items"]["3"]["cmd"];
-      }
-      if (curr == "4") {
-        path = memory["items"]["4"]["path"];
-        app = memory["items"]["4"]["cmd"];
-      }
-      if (curr == "5") {
-        path = memory["items"]["5"]["path"];
-        app = memory["items"]["5"]["cmd"];
-      }
-      if (curr == "6") {
-        path = memory["items"]["6"]["path"];
-        app = memory["items"]["6"]["cmd"];
-      }
-
-      if (path != "" && app != "") {
-        string cmd = "cd " + path + "/ && " + app;
-        system(cmd.c_str());
-      }
-    }
-
-    if (i == 2) {
-      slot = curr;
-    }
-
-    if (writeMode && i == 3) {
-      string memory_path = getPath() + "/memory.json";
-      ofstream memWrite(memory_path);
-      memory["items"][slot]["path"] = curr;
-      memory["items"][slot]["cmd"] = next;
-      memWrite << setw(4) << memory << endl;
-      memWrite.close();
-    }
-
-    if (curr == "-l" || curr == "--list") {
-      for (int k = 1; k < 6; k++) {
-        string line = std::format("Project {}: {}", to_string(k),
-                                  memory["items"][to_string(k)].dump());
-
-        cout << line << endl;
-      }
-    }
+  vector<Macro::macro> memory = {};
+  Macro::init(&memory);
+  if (argc >= 2) {
+    processArgs(argc, argv, &memory);
+  } else {
+    cout << Macro::HELPMENU << endl;
   }
 
+  Macro::dump(&memory);
   return 0;
 }
