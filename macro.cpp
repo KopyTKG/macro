@@ -1,6 +1,7 @@
 #include "headers/memory.hpp"
 
-void processArgs(int argc, char *argv[], vector<Macro::macro> *memory, bool lockdown) {
+void processArgs(int argc, char *argv[], vector<Macro::macro> *memory,
+                 bool lockdown) {
   // use Macro
   if (argv[1][0] != '-' && !lockdown) {
     if (!argv[1])
@@ -111,14 +112,14 @@ int main(int argc, char *argv[]) {
   try {
     Macro::init(&memory);
   } catch (const std::exception &) {
-	lockdown = true;
+    lockdown = true;
   }
   if (argc >= 2) {
     processArgs(argc, argv, &memory, lockdown);
   } else {
     cout << Macro::HELPMENU << endl;
   }
-
-  Macro::dump(&memory);
+  if (!lockdown)
+    Macro::dump(&memory);
   return 0;
 }
