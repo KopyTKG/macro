@@ -15,6 +15,7 @@
 
 using namespace std;
 namespace Macro {
+static string VERSION = R"(v2.0.3)";
 
 static string getUser() {
   char *username = getlogin();
@@ -56,7 +57,6 @@ $ macro -d [name]
 list macros
 $ macro -l)";
 
-static string VERSION = R"(v2.0.2)";
 
 struct cell {
   string cmd;
