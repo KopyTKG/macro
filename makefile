@@ -16,10 +16,10 @@ EXEC = macro
 BIN = ${EXEC}.bin
 
 # All target
-all: deepclean $(BIN) memclean 
+all: deepclean memclean $(BIN) memclean install
 
 # Compile source
-compile: memclean $(BIN)
+compile: deepclean memclean $(BIN) memclean
 
 # Link the object files to create the executable
 $(BIN): $(OBJS)
