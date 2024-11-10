@@ -98,17 +98,17 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
     if (!set && !override)
       return;
 
-    if ((argc - last) < 2) {
+    if ((argc - last) == 1) {
       cout << "Not enought arguments" << endl;
       return;
     }
 
     if (set || override) {
-      string name = argv[last + 1];
-      string cmd = argv[last + 2];
+      string name = string(argv[last + 1]);
+      string cmd = string(argv[last + 2]);
       string path = "";
-      if ((argc - last) == 2) {
-        path = argv[last + 3];
+      if ((argc - last) > 2) {
+        path = string(argv[last + 3]);
       }
       Macro::add(memory, name, cmd, path, override);
     }
@@ -128,11 +128,11 @@ int main(int argc, char *argv[]) {
     printArgs = processPrintArgs(argc, argv);
 
     if (printArgs == 0) {
-      if (lockdown){
+      if (lockdown) {
         cout << "Macro is running in lockdown mode. Usage of flags -s, -l, -d "
                 "and getting macro are disabled"
              << endl;
-	return 1;
+        return 1;
       }
       processArgs(argc, argv, &memory);
     }

@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.3] - 2024-11-10
+- Fixing setter error with indexing `argv` array
+
 ## [2.0.2] - 2024-11-10
 ### Fixed
 - Updating makefile logic
