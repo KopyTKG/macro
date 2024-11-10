@@ -53,7 +53,7 @@ $ macro -d [name]
 list macros
 $ macro -l)";
 
-static string VERSION = R"(v2.0.1)";
+static string VERSION = R"(v2.0.2)";
 
 struct cell {
   string cmd;
