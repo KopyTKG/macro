@@ -1,0 +1,49 @@
+name: Build CI
+
+permissions:
+  contents: write
+  id-token: write
+
+on:
+  push:
+    tags: "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build
+      run: make build
+
+    - name: Get Version
+      id: version
+      run: |
+        version_output=$(./macro.bin -v)
+        echo "version=$version_output" >> $GITHUB_ENV  
+    
+    - name: Rename Artifact
+      run: mv macro.bin macro
+        
+    - name: Create Release
+      uses: actions/create-release@v1
+      id: create_release
+      with:
+        draft: false
+        prerelease: false
+        release_name: ${{ env.version }}
+        tag_name: ${{ github.ref }}
+        body_path: CHANGELOG.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload Linux Artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./macro
+        asset_name: macro
+        asset_content_type: application/octet-stream

@@ -16,10 +16,10 @@ EXEC = macro
 BIN = ${EXEC}.bin
 
 # All target
-all: deepclean $(BIN) memclean 
+all: build install
 
 # Compile source
-compile: memclean $(BIN)
+build: deepclean memclean $(BIN) memclean
 
 # Link the object files to create the executable
 $(BIN): $(OBJS)
@@ -40,5 +40,5 @@ install:
 	cp ./${BIN} /usr/bin/${EXEC}
 
 # Phony targets
-.PHONY: all compile memclean deepclean install
+.PHONY: all build memclean deepclean install
 

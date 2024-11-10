@@ -1,6 +1,27 @@
 #include "headers/memory.hpp"
+#include <iostream>
+
+int processPrintArgs(int argc, char *argv[]) {
+  int state = 0;
+  for (int i = 1; i < argc; i++) {
+    auto item = string(argv[i]);
+    // HELP menu output
+    if (item == "-h" || item == "--help") {
+      cout << Macro::HELPMENU << endl;
+      state = 1;
+    }
+
+    // Version output
+    if (item == "-v" || item == "--version") {
+      cout << Macro::VERSION << endl;
+      state = 1;
+    }
+  }
+  return state;
+}
 
 void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
+  // use Macro
   if (argv[1][0] != '-') {
     if (!argv[1])
       return;
@@ -11,31 +32,24 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
       return;
     } else {
       Macro::macro item = (*memory)[index];
-      string cmd = "cd " + item.macro.path + " && " + item.macro.cmd;
-      system(cmd.c_str());
+      string cli = "";
+      string cmd = item.macro.cmd;
+      string path = "";
+      if (item.macro.path != "") {
+        path = item.macro.path;
+        cli = "cd " + path + " && ";
+      }
+      cli += cmd;
+      system(cli.c_str());
     }
+    // Use command
   } else {
     int last = 0;
     bool set, override, del = false;
 
-    for (int i = 1; i <= argc; i++) {
+    for (int i = 1; i < argc; i++) {
       bool valid = false;
-
-      if (!argv[i])
-        break;
       auto item = string(argv[i]);
-
-      // HELP menu output
-      if (item == "-h" || item == "--help") {
-        cout << Macro::HELPMENU << endl;
-        valid = true;
-      }
-
-      // Version output
-      if (item == "--version") {
-        cout << Macro::VERSION << endl;
-        valid = true;
-      }
 
       // Setter flag
       if (item == "-s" || item == "--set") {
@@ -68,6 +82,7 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
         valid = true;
       }
 
+      // Missing command check
       if (!valid && item[0] == '-') {
         cout << item + " is not valid command. Use macro -h" << endl;
         break;
@@ -83,27 +98,48 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
     if (!set && !override)
       return;
 
-    if ((argc - last) < 3) {
+    if ((argc - last) < 2) {
       cout << "Not enought arguments" << endl;
       return;
     }
 
     if (set || override) {
-      Macro::add(memory, argv[last + 1], argv[last + 2], argv[last + 3],
-                 override);
+      string name = argv[last + 1];
+      string cmd = argv[last + 2];
+      string path = "";
+      if ((argc - last) == 2) {
+        path = argv[last + 3];
+      }
+      Macro::add(memory, name, cmd, path, override);
     }
   }
 }
 
 int main(int argc, char *argv[]) {
   vector<Macro::macro> memory = {};
-  Macro::init(&memory);
+  bool lockdown = false;
+  int printArgs = 0;
+  try {
+    Macro::init(&memory);
+  } catch (const std::exception &) {
+    lockdown = true;
+  }
   if (argc >= 2) {
-    processArgs(argc, argv, &memory);
+    printArgs = processPrintArgs(argc, argv);
+
+    if (printArgs == 0) {
+      if (lockdown){
+        cout << "Macro is running in lockdown mode. Usage of flags -s, -l, -d "
+                "and getting macro are disabled"
+             << endl;
+	return 1;
+      }
+      processArgs(argc, argv, &memory);
+    }
   } else {
     cout << Macro::HELPMENU << endl;
   }
-
-  Macro::dump(&memory);
+  if (!lockdown)
+    Macro::dump(&memory);
   return 0;
 }
