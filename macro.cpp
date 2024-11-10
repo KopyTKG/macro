@@ -127,13 +127,15 @@ int main(int argc, char *argv[]) {
   if (argc >= 2) {
     printArgs = processPrintArgs(argc, argv);
 
-    if (printArgs == 0 && !lockdown)
+    if (printArgs == 0) {
+      if (lockdown){
+        cout << "Macro is running in lockdown mode. Usage of flags -s, -l, -d "
+                "and getting macro are disabled"
+             << endl;
+	return 1;
+      }
       processArgs(argc, argv, &memory);
-
-    if (lockdown)
-      cout << "Macro is running in lockdown mode. Usage of flags -s, -l, -d "
-              "and getting macro are disabled"
-           << endl;
+    }
   } else {
     cout << Macro::HELPMENU << endl;
   }
