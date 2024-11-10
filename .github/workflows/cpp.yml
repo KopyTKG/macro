@@ -16,7 +16,7 @@ jobs:
     - name: Get Version
       id: version
       run: |
-        if ./macro.cin -v; then
+        if ./macro.bin -v; then
           version_output=$(./macro.bin -v)
           echo "version=$version_output" >> $GITHUB_ENV
         else
