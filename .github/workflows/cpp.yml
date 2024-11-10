@@ -13,16 +13,20 @@ jobs:
     - name: Build
       run: make build
     
-    - name: Get Version
-      id: version
+    - name: Debug Version Command
       run: |
-        if ./macro.bin -v; then
-          version_output=$(./macro.bin -v)
-          echo "version=$version_output" >> $GITHUB_ENV
-        else
-          echo "Failed to get version" >&2
-          exit 1
-        fi
+        strace -o trace.log ./macro.bin -v || (echo "Version command failed" && cat trace.log && exit 1)
+
+    #- name: Get Version
+    #  id: version
+    #  run: |
+    #    if ./macro.bin -v; then
+    #      version_output=$(./macro.bin -v)
+    #      echo "version=$version_output" >> $GITHUB_ENV
+    #    else
+    #      echo "Failed to get version" >&2
+    #      exit 1
+    #    fi
     
     - name: Rename Artifact
       run: mv macro.bin macro
