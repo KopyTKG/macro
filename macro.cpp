@@ -1,6 +1,7 @@
 #include "headers/memory.hpp"
 
 void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
+  // use Macro
   if (argv[1][0] != '-') {
     if (!argv[1])
       return;
@@ -14,6 +15,7 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
       string cmd = "cd " + item.macro.path + " && " + item.macro.cmd;
       system(cmd.c_str());
     }
+  // Use command 
   } else {
     int last = 0;
     bool set, override, del = false;
@@ -21,8 +23,10 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
     for (int i = 1; i <= argc; i++) {
       bool valid = false;
 
+      // Argv overflow
       if (!argv[i])
         break;
+
       auto item = string(argv[i]);
 
       // HELP menu output
@@ -32,7 +36,7 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
       }
 
       // Version output
-      if (item == "--version") {
+      if (item == "-v" || item == "--version") {
         cout << Macro::VERSION << endl;
         valid = true;
       }
@@ -68,6 +72,7 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
         valid = true;
       }
 
+      // Missing command check
       if (!valid && item[0] == '-') {
         cout << item + " is not valid command. Use macro -h" << endl;
         break;
@@ -83,14 +88,19 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
     if (!set && !override)
       return;
 
-    if ((argc - last) < 3) {
+    if ((argc - last) < 2) {
       cout << "Not enought arguments" << endl;
       return;
     }
 
     if (set || override) {
-      Macro::add(memory, argv[last + 1], argv[last + 2], argv[last + 3],
-                 override);
+      string name = argv[last + 1];
+      string cmd = argv[last + 2];
+      string path = "";
+      if ((argc - last) == 2) {
+        path = argv[last + 3];
+      }
+      Macro::add(memory, name, cmd, path, override);
     }
   }
 }

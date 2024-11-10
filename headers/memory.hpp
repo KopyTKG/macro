@@ -30,7 +30,7 @@ static string HELPMENU = R"(Usage: macro [name]
     -d, --delete			Delete macro
     -l, --list               		Display all macros
     -h, --help                  	Display this help message
-    --version               		Display the version of lea
+    -v, --version               	Display the version of lea
  
 If nothing is provided at all macro will display help.
 
@@ -53,7 +53,7 @@ $ macro -d [name]
 list macros
 $ macro -l)";
 
-static string VERSION = R"(v2.0.0)";
+static string VERSION = R"(v2.0.1)";
 
 struct cell {
   string cmd;
