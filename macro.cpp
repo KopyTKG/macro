@@ -128,11 +128,11 @@ int main(int argc, char *argv[]) {
     printArgs = processPrintArgs(argc, argv);
 
     if (printArgs == 0) {
-      if (lockdown){
+      if (lockdown) {
         cout << "Macro is running in lockdown mode. Usage of flags -s, -l, -d "
                 "and getting macro are disabled"
              << endl;
-	return 1;
+        return 1;
       }
       processArgs(argc, argv, &memory);
     }
