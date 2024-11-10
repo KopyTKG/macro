@@ -1,9 +1,31 @@
 #include "headers/memory.hpp"
 
-void processArgs(int argc, char *argv[], vector<Macro::macro> *memory,
-                 bool lockdown) {
+int processPrintArgs(int argc, char *argv[]) {
+  int state = 0;
+  for (int i = 1; i <= argc; i++) {
+    // Argv overflow
+    if (!argv[i])
+      break;
+
+    auto item = string(argv[i]);
+    // HELP menu output
+    if (item == "-h" || item == "--help") {
+      cout << Macro::HELPMENU << endl;
+      state = 1;
+    }
+
+    // Version output
+    if (item == "-v" || item == "--version") {
+      cout << Macro::VERSION << endl;
+      state = 1;
+    }
+  }
+  return state;
+}
+
+void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
   // use Macro
-  if (argv[1][0] != '-' && !lockdown) {
+  if (argv[1][0] != '-') {
     if (!argv[1])
       return;
     string name = string(argv[1]);
@@ -29,18 +51,6 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory,
         break;
 
       auto item = string(argv[i]);
-
-      // HELP menu output
-      if (item == "-h" || item == "--help") {
-        cout << Macro::HELPMENU << endl;
-        valid = true;
-      }
-
-      // Version output
-      if (item == "-v" || item == "--version") {
-        cout << Macro::VERSION << endl;
-        valid = true;
-      }
 
       // Setter flag
       if (item == "-s" || item == "--set") {
@@ -81,12 +91,12 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory,
       }
     }
 
-    if (del && !lockdown) {
+    if (del) {
       Macro::remove(memory, argv[last + 1]);
       return;
     }
 
-    if ((!set && !override) || lockdown)
+    if (!set && !override)
       return;
 
     if ((argc - last) < 2) {
@@ -109,13 +119,16 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory,
 int main(int argc, char *argv[]) {
   vector<Macro::macro> memory = {};
   bool lockdown = false;
+  int printArgs = 0;
   try {
     Macro::init(&memory);
   } catch (const std::exception &) {
     lockdown = true;
   }
   if (argc >= 2) {
-    processArgs(argc, argv, &memory, lockdown);
+    printArgs = processPrintArgs(argc, argv);
+    if (printArgs == 0)
+      processArgs(argc, argv, &memory);
   } else {
     cout << Macro::HELPMENU << endl;
   }
