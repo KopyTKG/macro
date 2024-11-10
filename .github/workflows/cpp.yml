@@ -11,7 +11,7 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Build
-      run: make compile
+      run: make build
     
     - name: Rename Artifact
       run: mv macro.bin macro
