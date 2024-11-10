@@ -1,4 +1,5 @@
 #include "headers/memory.hpp"
+#include <iostream>
 
 int processPrintArgs(int argc, char *argv[]) {
   int state = 0;
@@ -125,8 +126,14 @@ int main(int argc, char *argv[]) {
   }
   if (argc >= 2) {
     printArgs = processPrintArgs(argc, argv);
-    if (printArgs == 0)
+
+    if (printArgs == 0 && !lockdown)
       processArgs(argc, argv, &memory);
+
+    if (lockdown)
+      cout << "Macro is running in lockdown mode. Usage of flags -s, -l, -d "
+              "and getting macro are disabled"
+           << endl;
   } else {
     cout << Macro::HELPMENU << endl;
   }
