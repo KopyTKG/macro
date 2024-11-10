@@ -1,8 +1,8 @@
 #include "headers/memory.hpp"
 
-void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
+void processArgs(int argc, char *argv[], vector<Macro::macro> *memory, bool lockdown) {
   // use Macro
-  if (argv[1][0] != '-') {
+  if (argv[1][0] != '-' && !lockdown) {
     if (!argv[1])
       return;
     string name = string(argv[1]);
@@ -15,7 +15,7 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
       string cmd = "cd " + item.macro.path + " && " + item.macro.cmd;
       system(cmd.c_str());
     }
-  // Use command 
+    // Use command
   } else {
     int last = 0;
     bool set, override, del = false;
@@ -80,12 +80,12 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
       }
     }
 
-    if (del) {
+    if (del && !lockdown) {
       Macro::remove(memory, argv[last + 1]);
       return;
     }
 
-    if (!set && !override)
+    if ((!set && !override) || lockdown)
       return;
 
     if ((argc - last) < 2) {
@@ -107,9 +107,14 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
 
 int main(int argc, char *argv[]) {
   vector<Macro::macro> memory = {};
-  Macro::init(&memory);
+  bool lockdown = false;
+  try {
+    Macro::init(&memory);
+  } catch (const std::exception &) {
+	lockdown = true;
+  }
   if (argc >= 2) {
-    processArgs(argc, argv, &memory);
+    processArgs(argc, argv, &memory, lockdown);
   } else {
     cout << Macro::HELPMENU << endl;
   }
