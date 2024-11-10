@@ -19,8 +19,13 @@ jobs:
     - name: Get Version
       id: version
       run: |
-        version_output=$(./macro --version)
-        echo "version=$version_output" >> $GITHUB_ENV
+        if ./macro --version; then
+          version_output=$(./macro --version)
+          echo "version=$version_output" >> $GITHUB_ENV
+        else
+          echo "Failed to get version" >&2
+          exit 1
+        fi
         
     - name: Create Release
       uses: actions/create-release@v1
