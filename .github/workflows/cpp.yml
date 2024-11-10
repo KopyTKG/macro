@@ -13,19 +13,19 @@ jobs:
     - name: Build
       run: make build
     
-    - name: Rename Artifact
-      run: mv macro.bin macro
-    
     - name: Get Version
       id: version
       run: |
-        if ./macro --version; then
-          version_output=$(./macro --version)
+        if ./macro.cin -v; then
+          version_output=$(./macro.bin -v)
           echo "version=$version_output" >> $GITHUB_ENV
         else
           echo "Failed to get version" >&2
           exit 1
         fi
+    
+    - name: Rename Artifact
+      run: mv macro.bin macro
         
     - name: Create Release
       uses: actions/create-release@v1
