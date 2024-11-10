@@ -14,15 +14,18 @@
 #include <vector>
 
 using namespace std;
+namespace Macro {
 
 static string getUser() {
-  string username = getlogin();
-  return username;
+  char *username = getlogin();
+  if (username == nullptr) {
+    throw std::runtime_error("No user. Switching to lockdown mode");
+  }
+  return string(username);
 }
 
-namespace Macro {
-const string DIRPATH = "/home/" + getUser() + "/.config/Macro";
-const string FILEPATH = DIRPATH + "/memory.mem";
+static string DIRPATH = "";
+static string FILEPATH = "";
 static string HELPMENU = R"(Usage: macro [name]
 
     -s, --set               		Set macro
@@ -112,6 +115,10 @@ static void dump(vector<macro> *memory) {
 }
 
 static void init(vector<macro> *memory) {
+  string user = getUser();
+  DIRPATH = "/home/" + user + "/.config/Macro";
+  FILEPATH = DIRPATH + "/memory.mem";
+
   auto dirExist = filesystem::exists(DIRPATH);
   auto fileExist = filesystem::exists(FILEPATH);
   if (!dirExist) {

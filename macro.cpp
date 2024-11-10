@@ -2,11 +2,7 @@
 
 int processPrintArgs(int argc, char *argv[]) {
   int state = 0;
-  for (int i = 1; i <= argc; i++) {
-    // Argv overflow
-    if (!argv[i])
-      break;
-
+  for (int i = 1; i < argc; i++) {
     auto item = string(argv[i]);
     // HELP menu output
     if (item == "-h" || item == "--help") {
@@ -35,21 +31,23 @@ void processArgs(int argc, char *argv[], vector<Macro::macro> *memory) {
       return;
     } else {
       Macro::macro item = (*memory)[index];
-      string cmd = "cd " + item.macro.path + " && " + item.macro.cmd;
-      system(cmd.c_str());
+      string cli = "";
+      string cmd = item.macro.cmd;
+      string path = "";
+      if (item.macro.path != "") {
+        path = item.macro.path;
+        cli = "cd " + path + " && ";
+      }
+      cli += cmd;
+      system(cli.c_str());
     }
     // Use command
   } else {
     int last = 0;
     bool set, override, del = false;
 
-    for (int i = 1; i <= argc; i++) {
+    for (int i = 1; i < argc; i++) {
       bool valid = false;
-
-      // Argv overflow
-      if (!argv[i])
-        break;
-
       auto item = string(argv[i]);
 
       // Setter flag
